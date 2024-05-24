@@ -4,21 +4,20 @@ Usage:
     >>> Dataset.Cohere.get(100_000)
 """
 
+from collections import namedtuple
 import logging
 import pathlib
-from collections import namedtuple
 from enum import Enum
-
 import pandas as pd
+from pydantic import validator, PrivateAttr
 import polars as pl
 from pyarrow.parquet import ParquetFile
-from pydantic import PrivateAttr, validator
 
+from ..base import BaseModel
 from .. import config
 from ..backend.clients import MetricType
-from ..base import BaseModel
 from . import utils
-from .data_source import DatasetReader, DatasetSource
+from .data_source import DatasetSource, DatasetReader
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +84,7 @@ class LAION(BaseDataset):
     metric_type: MetricType = MetricType.L2
     use_shuffled: bool = False
     _size_label: dict = {
-        100_000_000: SizeLabel(100_000_000, "LARGE", get_files(100, False, False)),
+        100_000_000: SizeLabel(100_000_000, "LARGE", get_files(100, False)),
     }
 
 
