@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 "vectordb_bench.results" = ["*.json"]
 
 [tool.setuptools.packages.find]
-where = ["vectordb_bench"]
+where = ["."]
+include = ["vectordb_bench"]
 
 [project]
 name = "vectordb-bench"
@@ -25,7 +26,7 @@ classifiers = [
 dependencies = [
     "pytz",
     "streamlit-autorefresh",
-    "streamlit>=1.23.0",
+    "streamlit!=1.34.0",
     "streamlit_extras",
     "tqdm",
     "s3fs",
@@ -58,6 +59,7 @@ all = [
     "redis",
     "chromadb",
     "psycopg2",
+    "psycopg",
     "couchbase",
 ]
 
@@ -65,7 +67,7 @@ qdrant = [ "qdrant-client" ]
 pinecone = [ "pinecone-client" ]
 weaviate = [ "weaviate-client" ]
 elastic = [ "elasticsearch" ]
-pgvector = [ "pgvector", "sqlalchemy" ]
+pgvector = [ "pgvector", "psycopg" ]
 pgvecto_rs = [ "psycopg2" ]
 redis = [ "redis" ]
 chromadb = [ "chromadb" ]

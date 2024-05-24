@@ -17,3 +17,5 @@ clean:
 
 # env/bin/init_bench
 # env/bin/cmd/run
+unittest:
+	PYTHONPATH=`pwd` python3 -m pytest tests/test_dataset.py::TestDataSet::test_download_small -svv

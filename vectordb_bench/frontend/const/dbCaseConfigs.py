@@ -49,6 +49,8 @@ class CaseConfigInput(BaseModel):
     label: CaseConfigParamType
     inputType: InputType = InputType.Text
     inputConfig: dict = {}
+    inputHelp: str = ""
+    displayLabel: str = ""
     # todo type should be a function
     isDisplayed: typing.Any = lambda x: True
 
@@ -71,6 +73,18 @@ CaseConfigParamInput_IndexType = CaseConfigInput(
     },
 )
 
+CaseConfigParamInput_IndexType_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.IndexType,
+    inputHelp="Select Index Type",
+    inputType=InputType.Option,
+    inputConfig={
+        "options": [
+            IndexType.HNSW.value,
+            IndexType.IVFFlat.value,
+        ],
+    },
+)
+
 CaseConfigParamInput_M = CaseConfigInput(
     label=CaseConfigParamType.M,
     inputType=InputType.Number,
@@ -82,6 +96,19 @@ CaseConfigParamInput_M = CaseConfigInput(
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     == IndexType.HNSW.value,
 )
+
+CaseConfigParamInput_m = CaseConfigInput(
+    label=CaseConfigParamType.m,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 4,
+        "max": 64,
+        "value": 16,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    == IndexType.HNSW.value,
+)
+
 
 CaseConfigParamInput_EFConstruction_Milvus = CaseConfigInput(
     label=CaseConfigParamType.EFConstruction,
@@ -115,6 +142,30 @@ CaseConfigParamInput_EFConstruction_ES = CaseConfigInput(
     },
 )
 
+CaseConfigParamInput_maintenance_work_mem_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.maintenance_work_mem,
+    inputHelp="Recommended value: 1.33x the index size, not to exceed the available free memory."
+              "Specify in gigabytes. e.g. 8GB",
+    inputType=InputType.Text,
+    inputConfig={
+        "value": "8GB",
+    },
+)
+
+CaseConfigParamInput_max_parallel_workers_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.max_parallel_workers,
+    displayLabel="Max parallel workers",
+    inputHelp="Recommended value: (cpu cores - 1). This will set the parameters: max_parallel_maintenance_workers,"
+              " max_parallel_workers & table(parallel_workers)",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 0,
+        "max": 1024,
+        "value": 16,
+    },
+)
+
+
 CaseConfigParamInput_EFConstruction_PgVectoRS = CaseConfigInput(
     label=CaseConfigParamType.EFConstruction,
     inputType=InputType.Number,
@@ -126,6 +177,19 @@ CaseConfigParamInput_EFConstruction_PgVectoRS = CaseConfigInput(
     isDisplayed=lambda config: config[CaseConfigParamType.IndexType]
     == IndexType.HNSW.value,
 )
+
+CaseConfigParamInput_EFConstruction_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.ef_construction,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 8,
+        "max": 1024,
+        "value": 256,
+    },
+    isDisplayed=lambda config: config[CaseConfigParamType.IndexType]
+    == IndexType.HNSW.value,
+)
+
 
 CaseConfigParamInput_M_ES = CaseConfigInput(
     label=CaseConfigParamType.M,
@@ -379,6 +443,8 @@ CaseConfigParamInput_Lists = CaseConfigInput(
         "max": 65536,
         "value": 10,
     },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.IVFFlat.value],
 )
 
 CaseConfigParamInput_Probes = CaseConfigInput(
@@ -391,12 +457,53 @@ CaseConfigParamInput_Probes = CaseConfigInput(
     },
 )
 
+CaseConfigParamInput_Lists_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.lists,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 1,
+        "max": 65536,
+        "value": 10,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    == IndexType.IVFFlat.value,
+)
+
+CaseConfigParamInput_Probes_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.probes,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 1,
+        "max": 65536,
+        "value": 1,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    == IndexType.IVFFlat.value,
+)
+
+CaseConfigParamInput_EFSearch_PgVector = CaseConfigInput(
+    label=CaseConfigParamType.ef_search,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 1,
+        "max": 2048,
+        "value": 256,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    == IndexType.HNSW.value,
+)
+
 CaseConfigParamInput_QuantizationType_PgVectoRS = CaseConfigInput(
     label=CaseConfigParamType.quantizationType,
     inputType=InputType.Option,
     inputConfig={
         "options": ["trivial", "scalar", "product"],
     },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [
+        IndexType.HNSW.value,
+        IndexType.IVFFlat.value,
+    ],
 )
 
 CaseConfigParamInput_QuantizationRatio_PgVectoRS = CaseConfigInput(
@@ -406,7 +513,21 @@ CaseConfigParamInput_QuantizationRatio_PgVectoRS = CaseConfigInput(
         "options": ["x4", "x8", "x16", "x32", "x64"],
     },
     isDisplayed=lambda config: config.get(CaseConfigParamType.quantizationType, None)
-    == "product",
+    == "product" and config.get(CaseConfigParamType.IndexType, None)
+    in [
+        IndexType.HNSW.value,
+        IndexType.IVFFlat.value,
+    ],
+)
+
+CaseConfigParamInput_ZillizLevel = CaseConfigInput(
+    label=CaseConfigParamType.level,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 1,
+        "max": 3,
+        "value": 1,
+    },
 )
 
 CaseConfigParamInput_ZillizLevel = CaseConfigInput(
@@ -470,8 +591,22 @@ ESPerformanceConfig = [
     CaseConfigParamInput_NumCandidates_ES,
 ]
 
-PgVectorLoadingConfig = [CaseConfigParamInput_Lists]
-PgVectorPerformanceConfig = [CaseConfigParamInput_Lists, CaseConfigParamInput_Probes]
+PgVectorLoadingConfig = [CaseConfigParamInput_IndexType_PgVector,
+                         CaseConfigParamInput_Lists_PgVector,
+                         CaseConfigParamInput_m,
+                         CaseConfigParamInput_EFConstruction_PgVector,
+                         CaseConfigParamInput_maintenance_work_mem_PgVector,
+                         CaseConfigParamInput_max_parallel_workers_PgVector,
+                         ]
+PgVectorPerformanceConfig = [CaseConfigParamInput_IndexType_PgVector,
+                             CaseConfigParamInput_m,
+                             CaseConfigParamInput_EFConstruction_PgVector,
+                             CaseConfigParamInput_EFSearch_PgVector,
+                             CaseConfigParamInput_Lists_PgVector,
+                             CaseConfigParamInput_Probes_PgVector,
+                             CaseConfigParamInput_maintenance_work_mem_PgVector,
+                             CaseConfigParamInput_max_parallel_workers_PgVector,
+                             ]
 
 PgVectoRSLoadingConfig = [
     CaseConfigParamInput_IndexType,
